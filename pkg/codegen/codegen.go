@@ -31,9 +31,8 @@ import (
 	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
-	"golang.org/x/tools/imports"
-
 	"github.com/oapi-codegen/oapi-codegen/v2/pkg/util"
+	"golang.org/x/tools/imports"
 )
 
 // Embed the templates directory
@@ -435,23 +434,7 @@ func GenerateTypeDefinitions(t *template.Template, swagger *openapi3.T, ops []Op
 			return "", fmt.Errorf("error generating Go types for component schemas: %w", err)
 		}
 
-		paramTypes, err := GenerateTypesForParameters(t, swagger.Components.Parameters)
-		if err != nil {
-			return "", fmt.Errorf("error generating Go types for component parameters: %w", err)
-		}
-		allTypes = append(schemaTypes, paramTypes...)
-
-		responseTypes, err := GenerateTypesForResponses(t, swagger.Components.Responses)
-		if err != nil {
-			return "", fmt.Errorf("error generating Go types for component responses: %w", err)
-		}
-		allTypes = append(allTypes, responseTypes...)
-
-		bodyTypes, err := GenerateTypesForRequestBodies(t, swagger.Components.RequestBodies)
-		if err != nil {
-			return "", fmt.Errorf("error generating Go types for component request bodies: %w", err)
-		}
-		allTypes = append(allTypes, bodyTypes...)
+		allTypes = schemaTypes
 	}
 
 	// Go through all operations, and add their types to allTypes, so that we can
@@ -461,11 +444,6 @@ func GenerateTypeDefinitions(t *template.Template, swagger *openapi3.T, ops []Op
 	enumTypes := allTypes
 	for _, op := range ops {
 		enumTypes = append(enumTypes, op.TypeDefinitions...)
-	}
-
-	operationsOut, err := GenerateTypesForOperations(t, ops)
-	if err != nil {
-		return "", fmt.Errorf("error generating Go types for component request bodies: %w", err)
 	}
 
 	enumsOut, err := GenerateEnums(t, enumTypes)
@@ -493,7 +471,7 @@ func GenerateTypeDefinitions(t *template.Template, swagger *openapi3.T, ops []Op
 		return "", fmt.Errorf("error generating boilerplate for union types with additionalProperties: %w", err)
 	}
 
-	typeDefinitions := strings.Join([]string{enumsOut, typesOut, operationsOut, allOfBoilerplate, unionBoilerplate, unionAndAdditionalBoilerplate}, "")
+	typeDefinitions := strings.Join([]string{enumsOut, typesOut, allOfBoilerplate, unionBoilerplate, unionAndAdditionalBoilerplate}, "")
 	return typeDefinitions, nil
 }
 
